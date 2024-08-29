@@ -1,0 +1,63 @@
+.section1
+{
+    padding:0;
+    position: relative;
+    z-index: 1;
+}
+.mainImg
+{
+    object-fit: cover;
+    width: 100%;
+    filter: brightness(35%);
+}
+.Tagline{
+    margin-bottom: 20rem;
+    margin-right: 30rem;
+    font-family: "Montserrat", sans-serif;
+    text-align: justify;
+}
+.TgLnAbove
+{
+    font-weight: 400;
+    font-size: 3rem;
+}
+.TglnBelow
+{
+    font-weight: 400;
+    font-size: 6rem;
+}
+.navig
+{
+    background: transparent;
+    z-index: 3;
+    margin: 0;
+    padding:0;
+}
+
+.nv{
+    margin:0;
+    padding:0;
+}
+body{
+    margin: 0;
+}
+.login-buttons1
+{
+    padding-left: 3rem;
+}
+.login-buttons2
+{
+    margin-right: 7rem;
+}
+.but{
+    padding:0.5rem 2rem 0.5rem 2rem;
+    border-radius: 2rem;
+}
+.TgLnAbove1
+{
+    font-weight: 400;
+    font-size: 1.6rem;
+}
+.btns{
+    margin-top: 1rem;
+}
