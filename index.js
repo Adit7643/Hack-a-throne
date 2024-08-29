@@ -48,8 +48,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 app.get("/", async (req, res) => {
-  await db.query("create table users(id serial primary key,firstname text,lastname text,email text,password text,location text,image text default 'image.jpg');");
-  res.render("home.ejs");
+   res.render("home.ejs");
 });
 app.get("/events", (req, res) => {
   res.render("events.ejs");
