@@ -2,6 +2,8 @@ import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
 import bcrypt from "bcrypt";
+import multer from 'multer';
+import path from 'path';
 import passport from "passport";
 import { Strategy } from "passport-local";
 import GoogleStrategy from "passport-google-oauth2";
@@ -34,23 +36,44 @@ const db = new pg.Client({
 });
 db.connect();
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+      cb(null, 'public/images')
+  },
+  filename: (req, file, cb) => {
+      cb(null, Date.now() + path.extname(file.originalname))
+      console.log(file);
+  }
+});
+const upload = multer({ storage: storage });
+
 app.get("/", (req, res) => {
   res.render("home.ejs");
 });
 app.get("/events", (req, res) => {
   res.render("events.ejs");
 });
-app.get("/maharastra", (req, res) => {
-  res.render("maharastra.ejs");
+app.get("/eventhost", (req, res) => {
+  res.render("eventhost.ejs");
 });
-
 app.get("/login", (req, res) => {
-  res.render("login.ejs");
+  res.render("home.ejs");
 });
 
-app.get("/register", (req, res) => {
-  res.render("register.ejs");
+app.post("/uploadevent", (req, res) => {
+  upload.single('image_source')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(500).json(err);
+    } else if (err) {
+      return res.status(500).json(err);
+    }
+    console.log(req.file);
+    res.send('File uploaded successfully.');
+  });
 });
+
+
+
 
 app.get("/logout", (req, res) => {
   req.logout(function (err) {
@@ -61,11 +84,11 @@ app.get("/logout", (req, res) => {
   });
 });
 
-app.get("/secrets", (req, res) => {
+app.get("/lander", (req, res) => {
   if (req.isAuthenticated()) {
-    res.render("secrets.ejs");
+    res.render("maharastra.ejs");
   } else {
-    res.redirect("/login");
+    res.redirect("maharastra.ejs");
   }
 });
 
@@ -77,9 +100,9 @@ app.get(
 );
 
 app.get(
-  "/auth/google/secrets",
+  "/auth/google/lander",
   passport.authenticate("google", {
-    successRedirect: "/secrets",
+    successRedirect: "/lander",
     failureRedirect: "/login",
   })
 );
@@ -87,35 +110,38 @@ app.get(
 app.post(
   "/login",
   passport.authenticate("local", {
-    successRedirect: "/secrets",
+    successRedirect: "/lander",
     failureRedirect: "/login",
   })
 );
 
-app.post("/register", async (req, res) => {
-  const email = req.body.username;
-  const password = req.body.password;
-
+app.post("/signup", async (req, res) => {
+  const email = req.body.mail;
+  const password = req.body.Password;
+  const location = req.body.Location;
+  const firstname = req.body.fname;
+  const lastname = req.body.lname;
+  console.log(req.body);
   try {
     const checkResult = await db.query("SELECT * FROM users WHERE email = $1", [
       email,
     ]);
 
     if (checkResult.rows.length > 0) {
-      req.redirect("/login");
+      req.redirect("/");
     } else {
       bcrypt.hash(password, saltRounds, async (err, hash) => {
         if (err) {
           console.error("Error hashing password:", err);
         } else {
           const result = await db.query(
-            "INSERT INTO users (email, password) VALUES ($1, $2) RETURNING *",
-            [email, hash]
+            "INSERT INTO users (email, password,location, firstname,lastname) VALUES ($1, $2,$3,$4,$5) RETURNING *",
+            [email, hash,location,firstname,lastname]
           );
           const user = result.rows[0];
           req.login(user, (err) => {
             console.log("success");
-            res.redirect("/secrets");
+            res.redirect("/lander");
           });
         }
       });
@@ -127,10 +153,10 @@ app.post("/register", async (req, res) => {
 
 passport.use(
   "local",
-  new Strategy(async function verify(username, password, cb) {
+  new Strategy(async function verify(email, password, cb) {
     try {
       const result = await db.query("SELECT * FROM users WHERE email = $1 ", [
-        username,
+        email,
       ]);
       if (result.rows.length > 0) {
         const user = result.rows[0];
@@ -162,19 +188,18 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/auth/google/secrets",
+      callbackURL: "http://localhost:3000/auth/google/lander",
       userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo",
     },
     async (accessToken, refreshToken, profile, cb) => {
       try {
-        console.log(profile);
         const result = await db.query("SELECT * FROM users WHERE email = $1", [
           profile.email,
         ]);
         if (result.rows.length === 0) {
           const newUser = await db.query(
-            "INSERT INTO users (email, password) VALUES ($1, $2)",
-            [profile.email, "google"]
+            "INSERT INTO users (email,Location,firstname,lastname, password,image) VALUES ($1, $2,$3,$4,$5,$6)",
+            [profile.email, "maharastra",profile.given_name,profile.family_name,"google123",profile.picture]
           );
           return cb(null, newUser.rows[0]);
         } else {
