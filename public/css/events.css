@@ -3,7 +3,7 @@
     font-family:  "Montserrat", sans-serif;
     color: #000;
     font-size: 1.5rem;
-    
+    overflow: hidden;
 }
 #fil
 {
@@ -16,4 +16,17 @@
 .keys
 {
     margin:1rem;
+}
+.card-image
+{
+    height: 10rem;
+    width:5rem;
+}
+.sticky-sec
+{
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding-top: 20px; 
+    overflow-y: auto;
 }

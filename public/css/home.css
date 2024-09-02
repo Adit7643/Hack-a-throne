@@ -101,3 +101,10 @@ body{
     height: 20px !important;
     width: 20px !important;
 }
+
+#sticky-sec
+{
+    position: sticky;
+    top:0;
+    overflow-y: auto;
+}

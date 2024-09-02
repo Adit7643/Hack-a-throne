@@ -1,21 +1,31 @@
 <%- include("partials/header") %>
-
     <section class="eventhost1 container-fluid">
-        <form action="/uploadevent" method="post">
-            <div class="container-fluid row">
-                <div class="col-sm-5 ">
-                    <div class="row host-form">
-                    <input type="file" name="image_source" class="form-control upload-img content" >
-                </div>
-                </div>
-                <div class="container-fluid col-sm-7">
-                    <div class="row host-form">
-                        <input class="form-control inp content" type="text" name="eventName" placeholder="EVENT NAME" required>
-                        <textarea name="eventdes" class="form-control text-area inp content"  placeholder="EVENT DETAILS" required></textarea>
+        <div class="container-fluid row">
+            <div class="col-sm-5">
+                <form action="/uploadevent" method="post" enctype="multipart/form-data">
+                    <div class="row host-form upload-img image-section">
+                        <% if(locals.imageSrc){  %>
+                        <div class="container-fluid"><img src="<%= imageSrc %>" class="img-fluid content event-image" /></div>
+                        <% }else {%>
+                        <div class="container-fluid"><img src="" class="img-fluid content event-image" /></div>
+                        <% } %>
+                        <div class="col-sm-6 container-fluid"><input type="file" value="upload" name="image_source" class="form-control  content" required></div>
+                        <div class="col-sm-6 container-fluid"><input class="form-control upload content" type="submit" value="Upload Image" required></div>
+                    </div>
+                </form>
+            </div>
+            <div class="container-fluid col-sm-7">
+                <div class="row host-form">
+                    <form action="/eventdetail" method="post" >
+                        <input class="form-control inp content" type="text" name="eventName" placeholder="EVENT NAME"
+                            required>
+                        <textarea name="eventdes" class="form-control text-area inp content" placeholder="EVENT DETAILS"
+                            required></textarea>
+
                         <select class="form-select state bg-dark inp content" name="Location"
                             aria-label="Default select example" required>
-                            <option selected>Location</option>
-                            <option value="Andaman and Nicobar">Andaman and Nicobar</option>
+                            
+                            <option value="Andaman and Nicobar" selected>Andaman and Nicobar</option>
                             <option value="Andhra Pradesh">Andhra Pradesh</option>
                             <option value="Arunachal Pradesh">Arunachal Pradesh</option>
                             <option value="Assam">Assam</option>
@@ -52,15 +62,16 @@
                             <option value="Uttar Pradesh">Uttar Pradesh</option>
                             <option value="Uttarakhand">Uttarakhand</option>
                             <option value="West Bengal">West Bengal</option>
-
                         </select>
-                        <input name="eventdate" class="form-control inp content " type="text" placeholder="DATE & TIME" required>
-                        <input name="eventprice" class="form-control inp content" type="text" placeholder="PRICE" required>
-                        <input  class="form-control inp upload content" type="submit"  value="Upload Event" required>
-                    </div>
+                        <input name="eventdate" class="form-control inp content" type="date" placeholder="DATE & TIME"
+                            required>
+                        <input name="eventprice" class="form-control inp content" type="text" placeholder="PRICE"
+                            required>
+                        <input class="form-control inp upload content" type="submit" value="Upload Event" required>
+                    </form>
                 </div>
             </div>
-        </form>
+        </div>
     </section>
 
     <%- include("partials/footer") %>

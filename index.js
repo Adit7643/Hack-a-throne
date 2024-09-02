@@ -38,17 +38,16 @@ db.connect();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-      cb(null, 'public/images')
+    cb(null, './public/images/event-images')
   },
   filename: (req, file, cb) => {
-      cb(null, Date.now() + path.extname(file.originalname))
-      console.log(file);
+    cb(null, Date.now() + path.extname(file.originalname))
   }
 });
 const upload = multer({ storage: storage });
 
 app.get("/", async (req, res) => {
-   res.render("home.ejs");
+  res.render("home.ejs");
 });
 app.get("/events", (req, res) => {
   res.render("events.ejs");
@@ -60,17 +59,49 @@ app.get("/login", (req, res) => {
   res.render("home.ejs");
 });
 
-app.post("/uploadevent", (req, res) => {
-  upload.single('image_source')(req, res, (err) => {
-    if (err instanceof multer.MulterError) {
-      return res.status(500).json(err);
-    } else if (err) {
-      return res.status(500).json(err);
+app.post('/uploadevent', upload.single("image_source"), async (req, res) => {
+  const destination = req.file.destination.replace("public/", "");
+  const source = destination + "/" + req.file.filename;
+  console.log(source);
+  req.session.source = source;
+  console.log(req.session.source);
+  res.render("eventhost.ejs",
+    {
+      imageSrc:source,
     }
-    console.log(req.file);
-    res.send('File uploaded successfully.');
-  });
+  )
 });
+
+app.post('/eventdetail', async (req, res) => {
+  try {
+    const table = req.body.Location;
+
+    await db.query(
+      `INSERT INTO ${table} (eventname, eventdes, eventdatetime, price, image) VALUES ($1, $2, $3, $4, $5)`,
+      [req.body.eventName, req.body.eventdes, req.body.eventdate, req.body.eventprice, req.session.source]
+    );
+
+    const events = await db.query(`SELECT * FROM ${table}`);
+
+    const eventNames = events.rows.map(event => event.eventname);
+    const descriptions = events.rows.map(event => event.eventdes);
+    const dates = events.rows.map(event => event.eventdatetime);
+    const prices = events.rows.map(event => event.price);
+    const images = events.rows.map(event => event.image);
+
+    res.render("events.ejs", {
+      EventNames: eventNames,
+      Descriptions: descriptions,
+      Dates: dates,
+      Prices: prices,
+      Images: images,
+    });
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(500).send("Server Error");
+  }
+});
+
 
 
 
@@ -121,7 +152,7 @@ app.post("/signup", async (req, res) => {
   const location = req.body.Location;
   const firstname = req.body.fname;
   const lastname = req.body.lname;
-  console.log(req.body);
+  req.session.email = req.body.mail;
   try {
     const checkResult = await db.query("SELECT * FROM users WHERE email = $1", [
       email,
@@ -136,7 +167,7 @@ app.post("/signup", async (req, res) => {
         } else {
           const result = await db.query(
             "INSERT INTO users (email, password,location, firstname,lastname) VALUES ($1, $2,$3,$4,$5) RETURNING *",
-            [email, hash,location,firstname,lastname]
+            [email, hash, location, firstname, lastname]
           );
           const user = result.rows[0];
           req.login(user, (err) => {
@@ -197,9 +228,10 @@ passport.use(
           profile.email,
         ]);
         if (result.rows.length === 0) {
+          req.session.mail = profile.email;
           const newUser = await db.query(
             "INSERT INTO users (email,Location,firstname,lastname, password,image) VALUES ($1, $2,$3,$4,$5,$6)",
-            [profile.email, "maharastra",profile.given_name,profile.family_name,"google123",profile.picture]
+            [profile.email, "maharastra", profile.given_name, profile.family_name, "google123", profile.picture]
           );
           return cb(null, newUser.rows[0]);
         } else {
